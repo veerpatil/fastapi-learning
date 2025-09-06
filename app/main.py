@@ -1,5 +1,5 @@
 from typing import Any
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from scalar_fastapi import get_scalar_api_reference
 
 app = FastAPI()
@@ -90,10 +90,19 @@ def get_latest_shipment()->dict[str, Any]:
 
 
 
-@app.get(f"/shipment/{id}")
+@app.get("/shipment/{id}")
 def get_shipment(id: int)->dict[str, Any]:
     if id not in shipments:
-        return {"error": "Shipment not found"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+    return shipments[id]
+
+@app.get("/shipments")
+def get_shipmentbyqueryparam(id: int | None = None)->dict[str, Any]:
+    if not id:
+        id = max(shipments.keys())
+        return shipments[id]
+    if id not in shipments:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return shipments[id]
 
 @app.get("/scalar", include_in_schema=False)
