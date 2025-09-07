@@ -4,127 +4,165 @@ from scalar_fastapi import get_scalar_api_reference
 
 app = FastAPI()
 
-shipments ={
-    121:{
+shipments = {
+    121: {
         "id": 121,
         "Content": "Wooden Table",
         "Status": "In transit",
         "Price": 1000,
-        "Currency": "USD"
+        "Currency": "USD",
     },
     122: {
         "id": 122,
         "Content": "Leather Sofa",
         "Status": "Delivered",
         "Price": 2500,
-        "Currency": "USD"
+        "Currency": "USD",
     },
     123: {
         "id": 123,
         "Content": "Gaming Laptop",
         "Status": "Processing",
         "Price": 1800,
-        "Currency": "EUR"
+        "Currency": "EUR",
     },
     124: {
         "id": 124,
         "Content": "Coffee Machine",
         "Status": "Shipped",
         "Price": 450,
-        "Currency": "GBP"
+        "Currency": "GBP",
     },
     125: {
         "id": 125,
         "Content": "Yoga Mat Set",
         "Status": "In transit",
         "Price": 89,
-        "Currency": "USD"
+        "Currency": "USD",
     },
     126: {
         "id": 126,
         "Content": "Smartphone",
         "Status": "Cancelled",
         "Price": 999,
-        "Currency": "CAD"
+        "Currency": "CAD",
     },
     127: {
         "id": 127,
         "Content": "Kitchen Knife Set",
         "Status": "Delivered",
         "Price": 320,
-        "Currency": "AUD"
+        "Currency": "AUD",
     },
     128: {
         "id": 128,
         "Content": "Wireless Headphones",
         "Status": "Out for delivery",
         "Price": 250,
-        "Currency": "USD"
+        "Currency": "USD",
     },
     129: {
         "id": 129,
         "Content": "Electric Bicycle",
         "Status": "Processing",
         "Price": 1200,
-        "Currency": "EUR"
+        "Currency": "EUR",
     },
     130: {
         "id": 130,
         "Content": "Art Canvas Set",
         "Status": "Shipped",
         "Price": 75,
-        "Currency": "USD"
+        "Currency": "USD",
     },
     131: {
         "id": 131,
         "Content": "Standing Desk",
         "Status": "In transit",
         "Price": 650,
-        "Currency": "JPY"
+        "Currency": "JPY",
     },
 }
+
+
 @app.get("/shipment/latest")
-def get_latest_shipment()->dict[str, Any]:
+def get_latest_shipment() -> dict[str, Any]:
     id = max(shipments.keys())
     return shipments[id]
 
 
-
 @app.get("/shipment/{id}")
-def get_shipment(id: int)->dict[str, Any]:
+def get_shipment(id: int) -> dict[str, Any]:
     if id not in shipments:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
+        )
     return shipments[id]
 
+
 @app.get("/shipments")
-def get_shipmentbyqueryparam(id: int | None = None)->dict[str, Any]:
+def get_shipmentbyqueryparam(id: int | None = None) -> dict[str, Any]:
     if not id:
         id = max(shipments.keys())
         return shipments[id]
     if id not in shipments:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
+        )
     return shipments[id]
 
 
 @app.post("/shipment")
-def submit_shipment(content: str, Status: str, price: float, currency: str) -> dict[str, int]:
-    if currency not in ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"]:  
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid currency")
+def submit_shipment(
+    content: str, Status: str, price: float, currency: str
+) -> dict[str, int]:
+    if currency not in ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"]:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid currency"
+        )
     if price <= 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price"
+        )
     new_id = max(shipments.keys()) + 1
     shipments[new_id] = {
         "id": new_id,
         "Content": content,
         "Status": Status,
         "Price": price,
-        "Currency": currency
+        "Currency": currency,
     }
     return {"id": new_id}
 
+
+@app.post("/shipments")
+def submit_shipment_body(shipment: dict[str, Any]) -> dict[str, int]:
+    if shipment["Currency"] not in ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"]:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid currency"
+        )
+    if shipment["Price"] <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price"
+        )
+    content = shipment["Content"]
+    Status = shipment["Status"]
+    price = shipment["Price"]
+    currency = shipment["Currency"]
+    new_id = max(shipments.keys()) + 1
+    shipments[new_id] = {
+        "id": new_id,
+        "Content": content,
+        "Status": Status,
+        "Price": price,
+        "Currency": currency,
+    }
+    return {"id": new_id}
+
+
 @app.get("/scalar", include_in_schema=False)
 def get_scalar_docs():
-        return get_scalar_api_reference(
-            openapi_url=app.openapi_url,
-            title="Scalar API Docs",
-        )
+    return get_scalar_api_reference(
+        openapi_url=app.openapi_url,
+        title="Scalar API Docs",
+    )
