@@ -105,6 +105,23 @@ def get_shipmentbyqueryparam(id: int | None = None)->dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
     return shipments[id]
 
+
+@app.post("/shipment")
+def submit_shipment(content: str, Status: str, price: float, currency: str) -> dict[str, int]:
+    if currency not in ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"]:  
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid currency")
+    if price <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price")
+    new_id = max(shipments.keys()) + 1
+    shipments[new_id] = {
+        "id": new_id,
+        "Content": content,
+        "Status": Status,
+        "Price": price,
+        "Currency": currency
+    }
+    return {"id": new_id}
+
 @app.get("/scalar", include_in_schema=False)
 def get_scalar_docs():
         return get_scalar_api_reference(
