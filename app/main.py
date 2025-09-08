@@ -160,6 +160,17 @@ def submit_shipment_body(shipment: dict[str, Any]) -> dict[str, int]:
     return {"id": new_id}
 
 
+@app.put("/shipment")
+def update_shipment(id: int, content: str, Status: str, price: float, currency: str) -> dict[str, Any]:
+    shipments[id] = {
+        "id": id,
+        "Content": content,
+        "Status": Status,
+        "Price": price,
+        "Currency": currency,
+    }
+    return shipments[id]
+
 @app.get("/scalar", include_in_schema=False)
 def get_scalar_docs():
     return get_scalar_api_reference(
